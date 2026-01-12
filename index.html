@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>AR Poster - Nur Izza Yarismen</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+      <style>
+         #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+         }
+         #start-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+         }
+
+         .floating-desc {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            font-family: "Courier New", Courier, monospace;
+            text-align: left;
+
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            transform: translateX(-50%) translateY(20px);
+         }
+
+         .floating-desc.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+         }
+
+         .floating-desc h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-family: sans-serif;
+            text-align: center;
+         }
+
+         .floating-desc p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100px;
+         }
+
+         .cursor {
+            display: inline-block;
+            width: 2px;
+            background-color: #333;
+            animation: blink 1s infinite;
+         }
+
+         @keyframes blink {
+            0%,
+            100% {
+               opacity: 1;
+            }
+            50% {
+               opacity: 0;
+            }
+         }
+      </style>
+
+      <script>
+         document.addEventListener("DOMContentLoaded", function () {
+            const target = document.querySelector("#target-poster");
+            const descBox = document.querySelector(".floating-desc");
+            const textElement = document.querySelector("#typing-text");
+            const audioElement = document.querySelector("#bg-audio");
+            const startScreen = document.querySelector("#start-screen");
+            const startBtn = document.querySelector("#start-btn");
+
+            startBtn.addEventListener("click", () => {
+               audioElement.muted = true;
+
+               audioElement
+                  .play()
+                  .then(() => {
+                     audioElement.pause();
+                     audioElement.currentTime = 0;
+                     audioElement.muted = false;
+                     startScreen.style.display = "none";
+                  })
+                  .catch((e) => {
+                     console.log("Audio permission error:", e);
+                     startScreen.style.display = "none";
+                  });
+            });
+
+            const fullText =
+               "Halo, Teman Masa Depan, Selamat datang di dimensi digital! Poster ini memvisualisasikan semangat kita untuk menembus batas ruang kelas menggunakan teknologi canggih seperti VR dan AI. Lihat kan betapa asyiknya mengeksplorasi ilmu tanpa batas? Karya ini adalah panggilan buat kamu untuk menjadi bagian dari 9 juta talenta digital Indonesia. Ayo, jadikan teknologi sahabatmu untuk mengubah imajinasi menjadi inovasi nyata!";
+            let typingTimer;
+            let charIndex = 0;
+            const typingSpeed = 65;
+
+            function startTyping() {
+               textElement.innerHTML = "";
+               charIndex = 0;
+               clearTimeout(typingTimer);
+               function type() {
+                  if (charIndex < fullText.length) {
+                     textElement.innerHTML += fullText.charAt(charIndex);
+                     charIndex++;
+                     typingTimer = setTimeout(type, typingSpeed);
+                  }
+               }
+               type();
+            }
+
+            function stopTyping() {
+               clearTimeout(typingTimer);
+               textElement.innerHTML = "";
+            }
+
+            target.addEventListener("targetFound", (event) => {
+               console.log("Found - Playing Audio");
+               descBox.classList.add("visible");
+
+               audioElement.play();
+
+               setTimeout(() => {
+                  startTyping();
+               }, 100);
+            });
+
+            target.addEventListener("targetLost", (event) => {
+               console.log("Lost - Stopping Audio");
+               descBox.classList.remove("visible");
+
+               audioElement.pause();
+               audioElement.load();
+
+               stopTyping();
+            });
+         });
+      </script>
+   </head>
+   <body>
+      <audio id="bg-audio" preload="auto">
+         <source src="./audio.mp3" type="audio/mpeg" />
+      </audio>
+
+      <div id="start-screen">
+         <div style="color: white; margin-bottom: 20px; font-family: sans-serif; text-align: center">
+            <h3>AR Poster - Nur Izza Yarismen</h3>
+            <p style="font-size: 0.8rem">Klik tombol di bawah untuk mengaktifkan kamera</p>
+         </div>
+         <button id="start-btn">MULAI AR</button>
+      </div>
+
+      <div class="floating-desc">
+         <h3>Mewujudkan Imajinasi Bersama Inovasi Teknologi</h3>
+         <p><span id="typing-text"></span><span class="cursor">|</span></p>
+      </div>
+
+      <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+         <a-entity id="target-poster" mindar-image-target="targetIndex: 0">
+            <a-entity gltf-model="./model.glb" rotation="90 0 0" position="0 0 0" scale="0.35 0.35 0.35"> </a-entity>
+         </a-entity>
+      </a-scene>
+   </body>
+</html>
